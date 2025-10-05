@@ -17,12 +17,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Add Android target
-        run: |
-          rustup target add ${{ matrix.target }}
+      - name: Set up Rust
+        uses: actions/setup-rust@v1
+        with:
+          rust-version: stable
+          targets: ${{ matrix.target }}
 
       - name: Install Android NDK
         run: |
@@ -36,7 +35,6 @@ jobs:
       - name: Set up linker environment
         run: |
           TARGET=${{ matrix.target }}
-          # Convert target triple to uppercase with underscores for Cargo env variable
           TARGET_ENV=$(echo $TARGET | tr a-z A-Z | tr '-' '_')
           LINKER="$HOME/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/${TARGET%%-*}-clang"
           echo "TARGET=$TARGET" >> $GITHUB_ENV
@@ -57,5 +55,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: openai-codex-$TARGET
-          path: artifacts/openai-codex-$TARGET.tar.gz
+          name: openai-codex-${{ matrix.target }}
+          path: artifacts/openai-codex-${{ matrix.target }}.tar.gz
