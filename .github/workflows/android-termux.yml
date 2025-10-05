@@ -14,14 +14,6 @@ jobs:
         target: [aarch64-linux-android]  # single target for test run
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: ${{ matrix.target }}
 
       - name: Install Android NDK
         run: |
@@ -31,6 +23,18 @@ jobs:
           unzip -q android-ndk-r26d-linux.zip
           mv android-ndk-r26d $HOME/android-ndk
           echo "NDK_HOME=$HOME/android-ndk" >> $GITHUB_ENV
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+
+      - name: Ensure Android target is installed
+        run: rustup target add ${{ matrix.target }}
+
 
       - name: Set up linker environment
         run: |
