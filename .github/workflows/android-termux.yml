@@ -1,9 +1,7 @@
 name: Build codex for Android Termux (32/64-bit)
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   build-termux:
