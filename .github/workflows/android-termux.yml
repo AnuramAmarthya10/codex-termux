@@ -16,23 +16,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
+      - name: Install Rust manually
+        run: |
+          curl https://sh.rustup.rs -sSf -o rustup-init.sh
+          chmod +x rustup-init.sh
+          ./rustup-init.sh -y --profile minimal --default-toolchain stable
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Add Android target
-        run: rustup target add ${{ matrix.target.arch }}
+        run: $HOME/.cargo/bin/rustup target add ${{ matrix.target.arch }}
 
       - name: Install cargo ndk
-        run: cargo install cargo-ndk
+        run: $HOME/.cargo/bin/cargo install cargo-ndk
 
       - name: Build codex binary for Android/Termux (${{ matrix.target.bin_suffix }})
         run: |
           cd codex-rs
-          cargo ndk -t ${{ matrix.target.ndk }} build --release
+          $HOME/.cargo/bin/cargo ndk -t ${{ matrix.target.ndk }} build --release
           mkdir -p termux_bin
           cp target/${{ matrix.target.arch }}/release/codex ../termux_bin/codex-${{ matrix.target.bin_suffix }}
 
@@ -41,3 +41,4 @@ jobs:
         with:
           name: codex-termux-binaries
           path: termux_bin/codex-${{ matrix.target.bin_suffix }}
+ 
