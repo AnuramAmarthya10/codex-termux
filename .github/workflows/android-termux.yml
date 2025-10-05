@@ -1,0 +1,55 @@
+name: Build Codex for Android (Termux)
+
+on:
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  build:
+    name: Build Codex Binary
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Add Android targets
+        run: |
+          rustup target add ${{ matrix.target }}
+
+      - name: Install Android NDK
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip wget
+          wget https://dl.google.com/android/repository/android-ndk-r26d-linux.zip
+          unzip -q android-ndk-r26d-linux.zip
+          mv android-ndk-* $HOME/android-ndk
+          echo "NDK_HOME=$HOME/android-ndk" >> $GITHUB_ENV
+
+      - name: Set up environment variables
+        run: |
+          echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
+          echo "CARGO_TARGET_${{ matrix.target//-/_ | upper }}_LINKER=${HOME}/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/${{ matrix.target%%-* }}-clang" >> $GITHUB_ENV
+
+      - name: Build release binary
+        run: |
+          cargo build --release --target ${{ matrix.target }}
+
+      - name: Compress binary
+        run: |
+          mkdir -p artifacts
+          cp target/${{ matrix.target }}/release/openai-codex artifacts/openai-codex-${{ matrix.target }}
+          tar -czf artifacts/openai-codex-${{ matrix.target }}.tar.gz -C artifacts openai-codex-${{ matrix.target }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openai-codex-${{ matrix.target }}
+          path: artifacts/openai-codex-${{ matrix.target }}.tar.gz
