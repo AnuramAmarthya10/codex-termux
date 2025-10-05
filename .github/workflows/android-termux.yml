@@ -39,7 +39,7 @@ jobs:
           cp target/armv7-linux-androideabi/release/codex termux_bin/codex-armv7
 
       - name: Upload codex binaries
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: codex-termux-binaries
           path: termux_bin/*
