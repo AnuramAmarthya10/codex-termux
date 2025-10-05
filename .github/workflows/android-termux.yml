@@ -6,7 +6,12 @@ on:
 jobs:
   build-termux:
     runs-on: ubuntu-latest
-    name: Build for Termux (Android aarch64 & armv7)
+    strategy:
+      matrix:
+        target:
+          - { arch: "aarch64-linux-android", ndk: "arm64-v8a", bin_suffix: "aarch64" }
+          - { arch: "armv7-linux-androideabi", ndk: "armeabi-v7a", bin_suffix: "armv7" }
+    name: Build for Termux (${{ matrix.target.arch }})
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -15,27 +20,24 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-          target: aarch64-linux-android,armv7-linux-androideabi
           profile: minimal
           override: true
+
+      - name: Add Android target
+        run: rustup target add ${{ matrix.target.arch }}
 
       - name: Install cargo ndk
         run: cargo install cargo-ndk
 
-      - name: Build codex binary for Android/Termux 64-bit (aarch64)
+      - name: Build codex binary for Android/Termux (${{ matrix.target.bin_suffix }})
         run: |
           cd codex-rs
-          cargo ndk -t arm64-v8a build --release
+          cargo ndk -t ${{ matrix.target.ndk }} build --release
           mkdir -p termux_bin
-          cp target/aarch64-linux-android/release/codex termux_bin/codex-aarch64
+          cp target/${{ matrix.target.arch }}/release/codex ../termux_bin/codex-${{ matrix.target.bin_suffix }}
 
-      - name: Build codex binary for Android/Termux 32-bit (armv7)
-        run: |
-          cargo ndk -t armeabi-v7a build --release
-          cp target/armv7-linux-androideabi/release/codex termux_bin/codex-armv7
-
-      - name: Upload codex binaries
+      - name: Upload codex binary ${{ matrix.target.bin_suffix }}
         uses: actions/upload-artifact@v4
         with:
           name: codex-termux-binaries
-          path: termux_bin/*
+          path: termux_bin/codex-${{ matrix.target.bin_suffix }}
