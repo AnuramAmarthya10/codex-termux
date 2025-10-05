@@ -22,6 +22,7 @@ jobs:
 
       - name: Add Android target
         run: |
+          cd codex-rs
           rustup target add ${{ matrix.target }}
 
       - name: Install Android NDK
