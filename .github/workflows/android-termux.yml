@@ -51,7 +51,7 @@ jobs:
       - name: Compress binary
         run: |
           mkdir -p artifacts
-          cp target/$TARGET/release/openai-codex artifacts/openai-codex-$TARGET
+          cp codex-rs/target/$TARGET/release/openai-codex artifacts/openai-codex-$TARGET
           tar -czf artifacts/openai-codex-$TARGET.tar.gz -C artifacts openai-codex-$TARGET
 
       - name: Upload artifact
