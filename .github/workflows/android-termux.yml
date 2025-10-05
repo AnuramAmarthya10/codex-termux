@@ -1,63 +1,47 @@
-name: Build Codex for Termux (Android)
+name: Build codex for Android Termux (32/64-bit)
 
 on:
-  workflow_dispatch:  # Manual trigger
+  push:
+    branches:
+      - main
 
 jobs:
-  build:
-    name: Build Codex Binary
+  build-termux:
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        target: [aarch64-linux-android]  # single target for test run
-
+    name: Build for Termux (Android aarch64 & armv7)
     steps:
-
-      - name: Install Android NDK
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y unzip wget
-          wget https://dl.google.com/android/repository/android-ndk-r26d-linux.zip
-          unzip -q android-ndk-r26d-linux.zip
-          mv android-ndk-r26d $HOME/android-ndk
-          echo "NDK_HOME=$HOME/android-ndk" >> $GITHUB_ENV
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-          target: ${{ matrix.target }}
+          profile: minimal
+          override: true
 
-      - name: Ensure Android target is installed
-        run: rustup target add ${{ matrix.target }}
-
-
-      - name: Set up linker environment
+      - name: Add Android targets
         run: |
-          TARGET=${{ matrix.target }}
-          TARGET_ENV=$(echo $TARGET | tr a-z A-Z | tr '-' '_')
-          LINKER="$HOME/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/${TARGET%%-*}-clang"
-          echo "TARGET=$TARGET" >> $GITHUB_ENV
-          echo "CARGO_TARGET_${TARGET_ENV}_LINKER=$LINKER" >> $GITHUB_ENV
-          echo "Using linker: $LINKER"
+          rustup target add aarch64-linux-android
+          rustup target add armv7-linux-androideabi
 
-      - name: Build release binary
+      - name: Install cargo ndk
+        run: cargo install cargo-ndk
+
+      - name: Build codex binary for Android/Termux 64-bit (aarch64)
         run: |
           cd codex-rs
-          cargo build --release --target $TARGET
+          cargo ndk -t arm64-v8a build --release
+          mkdir -p termux_bin
+          cp target/aarch64-linux-android/release/codex termux_bin/codex-aarch64
 
-      - name: Compress binary
+      - name: Build codex binary for Android/Termux 32-bit (armv7)
         run: |
-          mkdir -p artifacts
-          cp codex-rs/target/$TARGET/release/openai-codex artifacts/openai-codex-$TARGET
-          tar -czf artifacts/openai-codex-$TARGET.tar.gz -C artifacts openai-codex-$TARGET
+          cargo ndk -t armeabi-v7a build --release
+          cp target/armv7-linux-androideabi/release/codex termux_bin/codex-armv7
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload codex binaries
+        uses: actions/upload-artifact@v3
         with:
-          name: openai-codex-${{ matrix.target }}
-          path: artifacts/openai-codex-${{ matrix.target }}.tar.gz
+          name: codex-termux-binaries
+          path: termux_bin/*
