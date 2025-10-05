@@ -1,4 +1,4 @@
-name: Build Codex for Android (Termux)
+name: Build Codex for Termux (Android)
 
 on:
   workflow_dispatch:  # Manual trigger
@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android]
+        target: [aarch64-linux-android]  # single target for test run
 
     steps:
       - name: Checkout Repository
@@ -20,7 +20,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Add Android targets
+      - name: Add Android target
         run: |
           rustup target add ${{ matrix.target }}
 
@@ -30,26 +30,31 @@ jobs:
           sudo apt-get install -y unzip wget
           wget https://dl.google.com/android/repository/android-ndk-r26d-linux.zip
           unzip -q android-ndk-r26d-linux.zip
-          mv android-ndk-* $HOME/android-ndk
+          mv android-ndk-r26d $HOME/android-ndk
           echo "NDK_HOME=$HOME/android-ndk" >> $GITHUB_ENV
 
-      - name: Set up environment variables
+      - name: Set up linker environment
         run: |
-          echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
-          echo "CARGO_TARGET_${{ matrix.target//-/_ | upper }}_LINKER=${HOME}/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/${{ matrix.target%%-* }}-clang" >> $GITHUB_ENV
+          TARGET=${{ matrix.target }}
+          # Convert target triple to uppercase with underscores for Cargo env variable
+          TARGET_ENV=$(echo $TARGET | tr a-z A-Z | tr '-' '_')
+          LINKER="$HOME/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/${TARGET%%-*}-clang"
+          echo "TARGET=$TARGET" >> $GITHUB_ENV
+          echo "CARGO_TARGET_${TARGET_ENV}_LINKER=$LINKER" >> $GITHUB_ENV
+          echo "Using linker: $LINKER"
 
       - name: Build release binary
         run: |
-          cargo build --release --target ${{ matrix.target }}
+          cargo build --release --target $TARGET
 
       - name: Compress binary
         run: |
           mkdir -p artifacts
-          cp target/${{ matrix.target }}/release/openai-codex artifacts/openai-codex-${{ matrix.target }}
-          tar -czf artifacts/openai-codex-${{ matrix.target }}.tar.gz -C artifacts openai-codex-${{ matrix.target }}
+          cp target/$TARGET/release/openai-codex artifacts/openai-codex-$TARGET
+          tar -czf artifacts/openai-codex-$TARGET.tar.gz -C artifacts openai-codex-$TARGET
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: openai-codex-${{ matrix.target }}
-          path: artifacts/openai-codex-${{ matrix.target }}.tar.gz
+          name: openai-codex-$TARGET
+          path: artifacts/openai-codex-$TARGET.tar.gz
