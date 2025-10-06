@@ -28,10 +28,10 @@ jobs:
           rustup show || echo "rustup not initialized"
 
       - name: Add Android target
-        run: $HOME/.cargo/bin/rustup target add ${{ matrix.target.arch }}
+        run: rustup target add ${{ matrix.target.arch }}
 
       - name: Install cargo ndk
-        run: $HOME/.cargo/bin/cargo install cargo-ndk
+        run: cargo install cargo-ndk
       - name: Debug list installed targets
         run: rustup target list --installed
 
@@ -39,7 +39,7 @@ jobs:
       - name: Build codex binary for Android/Termux (${{ matrix.target.bin_suffix }})
         run: |
           cd codex-rs
-          $HOME/.cargo/bin/cargo ndk -t ${{ matrix.target.ndk }} build --release
+          cargo ndk -t ${{ matrix.target.ndk }} build --release
           mkdir -p termux_bin
           cp target/${{ matrix.target.arch }}/release/codex ../termux_bin/codex-${{ matrix.target.bin_suffix }}
 
