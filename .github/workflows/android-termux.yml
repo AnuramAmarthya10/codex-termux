@@ -38,8 +38,7 @@ jobs:
 
       - name: Build codex binary for Android/Termux (${{ matrix.target.bin_suffix }})
         run: |
-          cd codex-rs
-          cargo ndk -t ${{ matrix.target.ndk }} build --release
+          cargo ndk -t ${{ matrix.target.ndk }} build --manifest-path codex-rs/Cargo.toml --release
           mkdir -p termux_bin
           cp target/${{ matrix.target.arch }}/release/codex ../termux_bin/codex-${{ matrix.target.bin_suffix }}
 
