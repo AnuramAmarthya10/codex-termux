@@ -39,7 +39,7 @@ jobs:
 
       - name: Install cargo ndk
         run: $HOME/.cargo/bin/cargo install cargo-ndk
-      - name: Debug: list installed targets
+      - name: Debug list installed targets
         run: rustup target list --installed
 
 
