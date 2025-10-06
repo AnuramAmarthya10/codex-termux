@@ -11,20 +11,21 @@ jobs:
         target:
           - { arch: "aarch64-linux-android", ndk: "arm64-v8a", bin_suffix: "aarch64" }
           - { arch: "armv7-linux-androideabi", ndk: "armeabi-v7a", bin_suffix: "armv7" }
-  - name: Check existing Rust installation
-  run: |
-    echo "🔍 Checking preinstalled Rust:"
-    which rustc || echo "rustc not found"
-    rustc --version || echo "no rustc version available"
-    which cargo || echo "cargo not found"
-    cargo --version || echo "no cargo version available"
-    echo "Rustup toolchains:"
-    rustup show || echo "rustup not initialized"
+
 
     name: Build for Termux (${{ matrix.target.arch }})
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Check existing Rust installation
+        run: |
+          echo "🔍 Checking preinstalled Rust:"
+          which rustc || echo "rustc not found"
+          rustc --version || echo "no rustc version available"
+          which cargo || echo "cargo not found"
+          cargo --version || echo "no cargo version available"
+          echo "Rustup toolchains:"
+          rustup show || echo "rustup not initialized"
 
       - name: Install Rust manually
         run: |
