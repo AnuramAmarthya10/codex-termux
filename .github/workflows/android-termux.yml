@@ -26,16 +26,19 @@ jobs:
           cargo --version || echo "no cargo version available"
           echo "Rustup toolchains:"
           rustup show || echo "rustup not initialized"
-      - name: Install Android NDK
+      - name: Check for existing Android NDK
         run: |
-          mkdir -p $HOME/android-ndk
-          cd $HOME/android-ndk
-          curl -L https://dl.google.com/android/repository/android-ndk-r26d-linux.zip -o ndk.zip
-          unzip -q ndk.zip
-          mv android-ndk-r26d ndk
-          echo "ANDROID_NDK_HOME=$HOME/android-ndk/ndk" >> $GITHUB_ENV
-          echo "$HOME/android-ndk/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
-      - name: Add Android target
+             echo "Checking for existing Android NDK..."
+             echo "ANDROID_NDK_ROOT = ${ANDROID_NDK_ROOT:-not set}"
+             echo "ANDROID_NDK_HOME = ${ANDROID_NDK_HOME:-not set}"
+             if [ -d "/usr/local/lib/android/sdk/ndk" ]; then
+               echo "✅ Found preinstalled NDK versions:"
+               ls /usr/local/lib/android/sdk/ndk
+             else
+                 echo "⚠️ No preinstalled NDK found in /usr/local/lib/android/sdk/ndk"
+             fi
+
+      - name: Add target for android library
         run: rustup target add ${{ matrix.target.arch }}
 
       - name: Install cargo ndk
