@@ -32,7 +32,7 @@ echo
 # ===== Ensure cargo-ndk installed =====
 if ! command -v cargo-ndk &>/dev/null; then
     echo "Installing cargo-ndk..."
-    cargo install cargo-ndk --no-confirm
+    cargo install cargo-ndk
 fi
 
 echo "cargo-ndk version: $(cargo-ndk --version)"
