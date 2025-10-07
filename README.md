@@ -1,3 +1,6 @@
+> ⚙️ This is a fork of [openai/codex-rs](https://github.com/openai/codex-rs), modified to build for Android/Termux using GitHub Actions.
+
+
 <p align="center"><code>npm i -g @openai/codex</code><br />or <code>brew install codex</code></p>
 
 <p align="center"><strong>Codex CLI</strong> is a coding agent from OpenAI that runs locally on your computer.
