@@ -26,15 +26,23 @@ jobs:
           cargo --version || echo "no cargo version available"
           echo "Rustup toolchains:"
           rustup show || echo "rustup not initialized"
-
-      - name: Add Android target
-        run: rustup target add ${{ matrix.target.arch }}
+      - name: Install Android NDK
+        run: |
+          mkdir -p $HOME/android-ndk
+          cd $HOME/android-ndk
+          curl -L https://dl.google.com/android/repository/android-ndk-r26d-linux.zip -o ndk.zip
+          unzip -q ndk.zip
+          mv android-ndk-r26d ndk
+          echo "ANDROID_NDK_HOME=$HOME/android-ndk/ndk" >> $GITHUB_ENV
+          echo "$HOME/android-ndk/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
 
       - name: Install cargo ndk
         run: cargo install cargo-ndk
       - name: Debug list installed targets
         run: rustup target list --installed
 
+      - name: Add Android target
+        run: rustup target add ${{ matrix.target.arch }}
 
       - name: Build codex binary for Android/Termux (${{ matrix.target.bin_suffix }})
         working-directory: codex-rs
