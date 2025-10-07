@@ -12,7 +12,7 @@ TARGETS=(
     "armv7-linux-androideabi:armeabi-v7a:codex-armv7"
 )
 
-echo ">>>Starting Android build for Codex"
+echo "Starting Android build for Codex"
 echo "Repository directory: $REPO_DIR"
 echo "Codex source: $CODEX_DIR"
 echo "Output directory: $OUTPUT_DIR"
