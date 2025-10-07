@@ -1,62 +1,18 @@
-name: Build codex for Android Termux (32/64-bit)
-
 on:
   workflow_dispatch:
-
 jobs:
   build-termux:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target:
-          - { arch: "aarch64-linux-android", ndk: "arm64-v8a", bin_suffix: "aarch64" }
-          - { arch: "armv7-linux-androideabi", ndk: "armeabi-v7a", bin_suffix: "armv7" }
-
-
-    name: Build for Termux (${{ matrix.target.arch }})
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Check existing Rust installation
-        run: |
-          echo "🔍 Checking preinstalled Rust:"
-          which rustc || echo "rustc not found"
-          rustc --version || echo "no rustc version available"
-          which cargo || echo "cargo not found"
-          cargo --version || echo "no cargo version available"
-          echo "Rustup toolchains:"
-          rustup show || echo "rustup not initialized"
-      - name: Check for existing Android NDK
-        run: |
-             echo "Checking for existing Android NDK..."
-             echo "ANDROID_NDK_ROOT = ${ANDROID_NDK_ROOT:-not set}"
-             echo "ANDROID_NDK_HOME = ${ANDROID_NDK_HOME:-not set}"
-             if [ -d "/usr/local/lib/android/sdk/ndk" ]; then
-               echo "✅ Found preinstalled NDK versions:"
-               ls /usr/local/lib/android/sdk/ndk
-             else
-                 echo "⚠️ No preinstalled NDK found in /usr/local/lib/android/sdk/ndk"
-             fi
-
-      - name: Add target for android library
-        run: rustup target add ${{ matrix.target.arch }}
-
-      - name: Install cargo ndk
-        run: cargo install cargo-ndk
-      - name: Debug list installed targets
-        run: rustup target list --installed
-
-
-      - name: Build codex binary for Android/Termux (${{ matrix.target.bin_suffix }})
-        working-directory: codex-rs
-        run: |
-          cargo ndk -t ${{ matrix.target.ndk }} build --release
-          mkdir -p termux_bin
-          cp target/${{ matrix.target.arch }}/release/codex ../termux_bin/codex-${{ matrix.target.bin_suffix }}
-
-      - name: Upload codex binary ${{ matrix.target.bin_suffix }}
+      - uses: actions/checkout@v4
+      - name: Build Codex Android binaries
+        run: ./ci/build-android.sh
+        
+      - name: Upload binaries
         uses: actions/upload-artifact@v4
         with:
           name: codex-termux-binaries
-          path: termux_bin/codex-${{ matrix.target.bin_suffix }}
+          path: termux_bin/
+
+
  
