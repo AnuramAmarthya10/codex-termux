@@ -6,8 +6,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build Codex Android binaries
-        run: ./ci/build-android.sh
-        
+        run: ./codex-rs/android-ci.sh        
       - name: Upload binaries
         uses: actions/upload-artifact@v4
         with:
