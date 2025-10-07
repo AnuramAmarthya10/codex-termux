@@ -1,12 +1,15 @@
+name: Build for Termux on Android for 32-bit and 64-bit 
 on:
   workflow_dispatch:
 jobs:
-  build-termux:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Build Codex Android binaries
-        run: ./codex-rs/android-ci.sh        
+        run: |
+             chmod +x codex-rs/android-ci.sh
+             ./codex-rs/android-ci.sh        
       - name: Upload binaries
         uses: actions/upload-artifact@v4
         with:
