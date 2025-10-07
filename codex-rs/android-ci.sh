@@ -3,7 +3,7 @@ set -euo pipefail
 
 # ===== CONFIG =====
 REPO_DIR="$(dirname "$0")/.."  # Assuming script is in ci/
-CODEX_DIR="$REPO_DIR/codex-rs"
+CODEX_DIR="$(dirname "$0")/..
 OUTPUT_DIR="$REPO_DIR/termux_bin"
 ANDROID_NDK_ROOT="${ANDROID_NDK_ROOT:-/usr/local/lib/android/sdk/ndk/27.3.13750724}"
 
@@ -12,7 +12,7 @@ TARGETS=(
     "armv7-linux-androideabi:armeabi-v7a:codex-armv7"
 )
 
-echo "🔹 Starting Android build for Codex"
+echo ">>>Starting Android build for Codex"
 echo "Repository directory: $REPO_DIR"
 echo "Codex source: $CODEX_DIR"
 echo "Output directory: $OUTPUT_DIR"
@@ -45,17 +45,20 @@ mkdir -p "$OUTPUT_DIR"
 for entry in "${TARGETS[@]}"; do
     IFS=":" read -r RUST_TARGET NDK_TARGET BIN_NAME <<< "$entry"
     
-    echo "🔹 Building for $RUST_TARGET ($NDK_TARGET)..."
+    echo "Building for $RUST_TARGET ($NDK_TARGET)..."
 
     # Ensure Rust target installed
+    echo "Installing $RUST_TARGET"
     rustup target add "$RUST_TARGET"
-
     pushd "$CODEX_DIR" >/dev/null
-
+    echo "Listing installed targets"
+    rustup target list
     # Build using cargo-ndk
+    echo "building using cargo-ndk"
     cargo ndk -t "$NDK_TARGET" build --release
 
     # Copy binary to output dir
+    
     cp "target/$RUST_TARGET/release/codex" "$OUTPUT_DIR/$BIN_NAME"
 
     echo "✅ Built binary: $OUTPUT_DIR/$BIN_NAME"
@@ -63,4 +66,4 @@ for entry in "${TARGETS[@]}"; do
 done
 
 echo
-echo "🎉 All builds completed!"
+echo "All builds completed!"
